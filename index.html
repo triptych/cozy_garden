@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cozy Garden</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div class="game-container">
+            <header>
+                <h1>Cozy Garden</h1>
+                <div class="resources">
+                    <div class="coins">
+                        <span id="coins">100</span>
+                        <span class="icon">🪙</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="game-area">
+                <div class="farm-grid" id="farm-grid"></div>
+
+                <div class="side-panel">
+                    <div class="inventory">
+                        <h2>Seeds</h2>
+                        <div class="seed-container">
+                            <div class="seed selected" data-seed="carrot">
+                                <span class="seed-emoji">🥕</span>
+                                <span>Carrot</span>
+                                <span class="price">10
+                                    <span class="tiny-icon">🪙</span></span>
+                            </div>
+                            <div class="seed" data-seed="tomato">
+                                <span class="seed-emoji">🍅</span>
+                                <span>Tomato</span>
+                                <span class="price">15
+                                    <span class="tiny-icon">🪙</span></span>
+                            </div>
+                            <div class="seed" data-seed="pumpkin">
+                                <span class="seed-emoji">🎃</span>
+                                <span>Pumpkin</span>
+                                <span class="price">20
+                                    <span class="tiny-icon">🪙</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-panel">
+                        <h2>Garden Journal</h2>
+                        <div id="journal-entries">
+                            <p>Welcome to your cozy garden! Click on a plot to plant seeds.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="time-controls">
+                <div class="weather">
+                    <span id="weather-icon">☀️</span>
+                    <span id="weather-text">Sunny</span>
+                </div>
+                <div class="day-cycle">
+                    <span id="day-count">Day 1</span>
+                    <button id="next-day">Sleep & Start Next Day</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="notification" class="notification"></div>
+
+        <script src="script.js"></script>
+    </body>
+</html>

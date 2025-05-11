@@ -1,0 +1,307 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    background-color: #e6f7ff;
+    color: #5d4037;
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: #e6f7ff;
+}
+
+.game-container {
+    width: 100%;
+    max-width: 1000px;
+    background-color: #fff9e6;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    overflow: hidden;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 3px dashed #a6d8a8;
+}
+
+h1 {
+    color: #7cb342;
+    text-shadow: 2px 2px 0 #fff;
+    font-size: 2.5rem;
+}
+
+h2 {
+    color: #558b2f;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.resources {
+    display: flex;
+    gap: 15px;
+}
+
+.coins {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    padding: 8px 15px;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ff8f00;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.icon {
+    font-size: 24px;
+    margin-left: 5px;
+}
+
+.tiny-icon {
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+.game-area {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.farm-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 8px;
+    min-width: 350px;
+    min-height: 350px;
+    background-color: #f8d6a3;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.plot {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background-color: #8d6e63;
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.plot:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.plot.empty {
+    background-color: #8d6e63;
+}
+
+.plot.planted {
+    background-color: #a5d6a7;
+}
+
+.plot.grown {
+    background-color: #81c784;
+}
+
+.plot .crop-emoji {
+    width: 80%;
+    height: 80%;
+    pointer-events: none;
+    font-size: 2rem;
+    text-align: center;
+}
+
+.growth-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background-color: #4caf50;
+}
+
+.side-panel {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.inventory, .info-panel {
+    background-color: #fff;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.inventory {
+    flex-grow: 0;
+}
+
+.info-panel {
+    flex-grow: 1;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.seed-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.seed {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80px;
+    padding: 10px 5px;
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.seed:hover {
+    transform: translateY(-5px);
+}
+
+.seed.selected {
+    border-color: #7cb342;
+    background-color: #f1f8e9;
+}
+
+.seed .seed-emoji {
+    font-size: 2rem;
+    margin-bottom: 5px;
+    display: block;
+    text-align: center;
+}
+
+.seed span {
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.seed .price {
+    color: #ff8f00;
+    font-weight: bold;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.time-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #e8f5e9;
+    padding: 15px;
+    border-radius: 15px;
+    margin-top: 10px;
+}
+
+.weather {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#weather-icon {
+    font-size: 1.5rem;
+}
+
+.day-cycle {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#day-count {
+    font-weight: bold;
+    color: #558b2f;
+}
+
+button {
+    background-color: #7cb342;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-family: inherit;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #558b2f;
+}
+
+#journal-entries {
+    font-size: 0.9rem;
+    color: #5d4037;
+}
+
+#journal-entries p {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    color: #5d4037;
+    padding: 12px 25px;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.notification.visible {
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .game-area {
+        flex-direction: column;
+    }
+
+    .farm-grid {
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+    }
+
+    .time-controls {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+}
