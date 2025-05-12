@@ -420,6 +420,7 @@ function createEmojiStyles() {
 
 // Sound Management
 let isSoundOn = true;
+const volumeSlider = document.getElementById('volume-slider');
 
 function toggleSound() {
     if (isSoundOn) {
@@ -432,8 +433,24 @@ function toggleSound() {
     isSoundOn = !isSoundOn;
 }
 
+function updateVolume() {
+    backgroundSound.volume = volumeSlider.value;
+    // Save volume preference to localStorage
+    localStorage.setItem('cozyGardenVolume', volumeSlider.value);
+}
+
 // Handle sound control click
 soundControl.addEventListener('click', toggleSound);
+
+// Handle volume change
+volumeSlider.addEventListener('input', updateVolume);
+
+// Initialize volume from saved preference
+if (localStorage.getItem('cozyGardenVolume') !== null) {
+    const savedVolume = localStorage.getItem('cozyGardenVolume');
+    volumeSlider.value = savedVolume;
+    backgroundSound.volume = savedVolume;
+}
 
 // Start game from splash screen
 function startGame() {

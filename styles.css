@@ -336,11 +336,19 @@ button:hover {
     background-color: #558b2f;
 }
 
-/* Sound control */
-.sound-control {
+/* Sound controls */
+.sound-controls {
     position: fixed;
     bottom: 20px;
     right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+}
+
+.sound-control {
     background-color: #fff;
     border-radius: 50%;
     width: 40px;
@@ -350,12 +358,23 @@ button:hover {
     align-items: center;
     cursor: pointer;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    z-index: 100;
     font-size: 1.2rem;
 }
 
 .sound-control:hover {
     transform: scale(1.1);
+}
+
+.volume-control {
+    background-color: #fff;
+    border-radius: 20px;
+    padding: 5px 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.volume-control input[type="range"] {
+    width: 100px;
+    cursor: pointer;
 }
 
 @media (max-width: 768px) {
