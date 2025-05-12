@@ -2,6 +2,10 @@
 
 A relaxing web-based farming simulator built with vanilla HTML, CSS, and JavaScript that implements key elements of the cozy game genre.
 
+## Author
+
+Andrew Wooldridge
+
 ## How to Play
 
 1. Open `index.html` in any modern web browser

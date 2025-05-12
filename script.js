@@ -58,6 +58,10 @@ const weatherIcon = document.getElementById('weather-icon');
 const weatherText = document.getElementById('weather-text');
 const journalEntries = document.getElementById('journal-entries');
 const notification = document.getElementById('notification');
+const splashScreen = document.getElementById('splash-screen');
+const startGameButton = document.getElementById('start-game');
+const backgroundSound = document.getElementById('background-sound');
+const soundControl = document.getElementById('sound-control');
 
 // Initialize game
 function initGame() {
@@ -414,8 +418,51 @@ function createEmojiStyles() {
     document.head.appendChild(style);
 }
 
+// Sound Management
+let isSoundOn = true;
+
+function toggleSound() {
+    if (isSoundOn) {
+        backgroundSound.pause();
+        soundControl.textContent = '🔇';
+    } else {
+        backgroundSound.play();
+        soundControl.textContent = '🔊';
+    }
+    isSoundOn = !isSoundOn;
+}
+
+// Handle sound control click
+soundControl.addEventListener('click', toggleSound);
+
+// Start game from splash screen
+function startGame() {
+    // Play background sound
+    backgroundSound.play().catch(error => {
+        console.log('Audio autoplay was prevented, click sound control to start audio');
+    });
+
+    // Hide splash screen with fade effect
+    splashScreen.style.opacity = '0';
+    setTimeout(() => {
+        splashScreen.style.display = 'none';
+    }, 500);
+
+    // Add journal entry
+    addJournalEntry('Welcome to your garden! The weather is perfect for planting.');
+}
+
 // Initialize the game
 document.addEventListener('DOMContentLoaded', () => {
     createEmojiStyles();
     initGame();
+
+    // Set up splash screen button
+    startGameButton.addEventListener('click', startGame);
+
+    // Prevent game container interactions until splash screen is dismissed
+    document.querySelector('.game-container').style.pointerEvents = 'none';
+    startGameButton.addEventListener('click', () => {
+        document.querySelector('.game-container').style.pointerEvents = 'auto';
+    });
 });

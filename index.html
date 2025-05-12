@@ -7,6 +7,20 @@
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
+        <!-- Splash Screen -->
+        <div id="splash-screen" class="splash-screen">
+            <div class="splash-content">
+                <h1>Cozy Garden</h1>
+                <p>Relax and grow your garden</p>
+                <button id="start-game">Start Game</button>
+            </div>
+        </div>
+
+        <!-- Audio Element -->
+        <audio id="background-sound" loop="loop">
+            <source src="back.wav" type="audio/wav">
+            Your browser does not support the audio element.
+        </audio>
         <div class="game-container">
             <header>
                 <h1>Cozy Garden</h1>
@@ -68,6 +82,9 @@
         </div>
 
         <div id="notification" class="notification"></div>
+
+        <!-- Sound Control -->
+        <div id="sound-control" class="sound-control">🔊</div>
 
         <script src="script.js"></script>
     </body>
