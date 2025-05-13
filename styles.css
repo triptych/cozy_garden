@@ -512,6 +512,7 @@ button:hover {
     align-items: center;
     z-index: 1000;
     transition: opacity 0.5s ease-in-out;
+    display: flex; /* Ensure this is explicitly set */
 }
 
 .splash-content {

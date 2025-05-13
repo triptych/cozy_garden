@@ -210,10 +210,12 @@ function checkSavedGame() {
         // Show the continue game button if we have saved data
         continueGameButton.style.display = 'inline-block';
     } else {
-        // Hide the continue button if no saved data
-        continueGameButton.style.display = 'none';
-        // Auto-start a new game
-        startNewGame();
+        // Always show the continue button, but disable it if no saved data
+        continueGameButton.style.display = 'inline-block';
+        continueGameButton.textContent = 'No Saved Game';
+        continueGameButton.disabled = true;
+        continueGameButton.style.backgroundColor = '#9e9e9e';
+        continueGameButton.style.cursor = 'not-allowed';
     }
 
     // Fix issue where buttons click handler might not be attached
@@ -240,6 +242,7 @@ function startNewGame() {
     updateUI();
     updateInventoryUI();
     updateShopUI();
+    updateSeedAvailability();
     hideSplashScreen();
     closeModal();
     addJournalEntry('Starting a fresh garden! The weather is perfect for planting.');
@@ -253,7 +256,7 @@ function promptNewGame() {
         // Show confirmation modal
         confirmModal.classList.add('visible');
     } else {
-        // No saved game, start new game directly
+        // No saved game, but still start a new game only when explicitly clicked
         startNewGame();
     }
 }
@@ -1033,6 +1036,10 @@ document.addEventListener('DOMContentLoaded', () => {
     createEmojiStyles();
     initGame();
 
+    // Make sure splash screen is visible
+    splashScreen.style.display = 'flex';
+    splashScreen.style.opacity = '1';
+
     // Debug function to log tab info
     function debugTabs() {
         console.log('Main tab buttons:', document.querySelectorAll('.main-tab-btn').length);
@@ -1043,15 +1050,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Run debug
     setTimeout(debugTabs, 1000);
 
-    // Force test the inventory tab after a delay
-    setTimeout(() => {
-        console.log('Forcing inventory tab');
-        switchMainTab('inventory');
-        // Update the button state manually
-        document.querySelectorAll('.main-tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.mainTab === 'inventory');
-        });
-    }, 2000);
+    // We don't need to force the inventory tab anymore
+    // as it was causing issues with the splash screen
 
     // Prevent game container interactions until splash screen is dismissed
     document.querySelector('.game-container').style.pointerEvents = 'none';
