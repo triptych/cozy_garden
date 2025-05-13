@@ -165,6 +165,8 @@ function initGame() {
 
 // Set up all event listeners
 function setupEventListeners() {
+    console.log("Setting up event listeners");
+
     // Set up seed selection
     document.querySelectorAll('.seed').forEach(seed => {
         seed.addEventListener('click', () => {
@@ -183,10 +185,10 @@ function setupEventListeners() {
         tab.addEventListener('click', () => switchTab(tab.dataset.tab));
     });
 
-    // Set up main tab switching
-    mainTabButtons.forEach(tab => {
-        tab.addEventListener('click', () => switchMainTab(tab.dataset.mainTab));
-    });
+    // Set up main tab switching with individual handlers for reliability
+    document.querySelector('[data-main-tab="seeds"]').addEventListener('click', () => switchMainTab('seeds'));
+    document.querySelector('[data-main-tab="inventory"]').addEventListener('click', () => switchMainTab('inventory'));
+    document.querySelector('[data-main-tab="shop"]').addEventListener('click', () => switchMainTab('shop'));
 
     // Set up next day button
     nextDayButton.addEventListener('click', startNextDay);
@@ -213,6 +215,13 @@ function checkSavedGame() {
         // Auto-start a new game
         startNewGame();
     }
+
+    // Fix issue where buttons click handler might not be attached
+    document.querySelector('.main-tabs').addEventListener('click', (e) => {
+        if (e.target.classList.contains('main-tab-btn')) {
+            switchMainTab(e.target.dataset.mainTab);
+        }
+    });
 }
 
 // Continue a saved game
@@ -305,6 +314,8 @@ function switchTab(tabName) {
 
 // Switch between main tabs (Seeds, Inventory, Shop)
 function switchMainTab(tabName) {
+    console.log(`Switching to tab: ${tabName}`);
+
     // Update main tab buttons
     mainTabButtons.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.mainTab === tabName);
@@ -321,6 +332,9 @@ function switchMainTab(tabName) {
     } else if (tabName === 'shop') {
         updateShopUI();
     }
+
+    // Force a reflow to ensure UI updates
+    document.body.offsetHeight;
 }
 
 // Create farm plots
@@ -1010,6 +1024,26 @@ if (localStorage.getItem('cozyGardenSoundOn') !== null) {
 document.addEventListener('DOMContentLoaded', () => {
     createEmojiStyles();
     initGame();
+
+    // Debug function to log tab info
+    function debugTabs() {
+        console.log('Main tab buttons:', document.querySelectorAll('.main-tab-btn').length);
+        console.log('Inventory tab:', document.querySelector('[data-main-tab="inventory"]'));
+        console.log('Shop tab:', document.querySelector('[data-main-tab="shop"]'));
+    }
+
+    // Run debug
+    setTimeout(debugTabs, 1000);
+
+    // Force test the inventory tab after a delay
+    setTimeout(() => {
+        console.log('Forcing inventory tab');
+        switchMainTab('inventory');
+        // Update the button state manually
+        document.querySelectorAll('.main-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.mainTab === 'inventory');
+        });
+    }, 2000);
 
     // Prevent game container interactions until splash screen is dismissed
     document.querySelector('.game-container').style.pointerEvents = 'none';
