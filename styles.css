@@ -84,8 +84,9 @@ h2 {
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(5, 1fr);
     gap: 8px;
-    min-width: 350px;
-    min-height: 350px;
+    width: 350px;
+    height: 350px;
+    flex-shrink: 0;
     background-color: #f8d6a3;
     padding: 15px;
     border-radius: 15px;
