@@ -16,9 +16,17 @@
             </div>
         </div>
 
-        <!-- Audio Element -->
+        <!-- Audio Elements -->
         <audio id="background-sound" loop="loop">
             <source src="back.wav" type="audio/wav">
+            Your browser does not support the audio element.
+        </audio>
+        <audio id="plant-sound">
+            <source src="plant.wav" type="audio/wav">
+            Your browser does not support the audio element.
+        </audio>
+        <audio id="harvest-sound">
+            <source src="harvest.wav" type="audio/wav">
             Your browser does not support the audio element.
         </audio>
         <div class="game-container">
@@ -38,7 +46,12 @@
                 <div class="side-panel">
                     <div class="inventory">
                         <h2>Seeds</h2>
-                        <div class="seed-container">
+                        <div class="seed-tabs">
+                            <button class="tab-btn active" data-tab="vegetables">Vegetables</button>
+                            <button class="tab-btn" data-tab="flowers">Flowers</button>
+                            <button class="tab-btn" data-tab="rare">Rare</button>
+                        </div>
+                        <div class="seed-container active" id="vegetables-tab">
                             <div class="seed selected" data-seed="carrot">
                                 <span class="seed-emoji">🥕</span>
                                 <span>Carrot</span>
@@ -56,6 +69,49 @@
                                 <span>Pumpkin</span>
                                 <span class="price">20
                                     <span class="tiny-icon">🪙</span></span>
+                            </div>
+                            <div class="seed" data-seed="corn">
+                                <span class="seed-emoji">🌽</span>
+                                <span>Corn</span>
+                                <span class="price">12
+                                    <span class="tiny-icon">🪙</span></span>
+                            </div>
+                            <div class="seed" data-seed="eggplant">
+                                <span class="seed-emoji">🍆</span>
+                                <span>Eggplant</span>
+                                <span class="price">18
+                                    <span class="tiny-icon">🪙</span></span>
+                            </div>
+                            <div class="seed" data-seed="potato">
+                                <span class="seed-emoji">🥔</span>
+                                <span>Potato</span>
+                                <span class="price">8
+                                    <span class="tiny-icon">🪙</span></span>
+                            </div>
+                        </div>
+                        <div class="seed-container" id="flowers-tab">
+                            <div class="seed" data-seed="sunflower">
+                                <span class="seed-emoji">🌻</span>
+                                <span>Sunflower</span>
+                                <span class="price">25
+                                    <span class="tiny-icon">🪙</span></span>
+                                <span class="special-effect">💰 Daily Bonus</span>
+                            </div>
+                            <div class="seed" data-seed="tulip">
+                                <span class="seed-emoji">🌷</span>
+                                <span>Tulip</span>
+                                <span class="price">20
+                                    <span class="tiny-icon">🪙</span></span>
+                                <span class="special-effect">⚡ Growth Boost</span>
+                            </div>
+                        </div>
+                        <div class="seed-container" id="rare-tab">
+                            <div class="seed" data-seed="goldenRose">
+                                <span class="seed-emoji">🌹</span>
+                                <span>Golden Rose</span>
+                                <span class="price">50
+                                    <span class="tiny-icon">🪙</span></span>
+                                <span class="rare-tag">Rare</span>
                             </div>
                         </div>
                     </div>

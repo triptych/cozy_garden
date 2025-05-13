@@ -123,6 +123,21 @@ h2 {
     background-color: #81c784;
 }
 
+.plot.grown.rare-plant {
+    background-color: #ffd54f;
+    box-shadow: 0 0 15px #ffca28;
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 0 15px #ffca28;
+    }
+    to {
+        box-shadow: 0 0 30px #ffca28;
+    }
+}
+
 .plot .crop-emoji {
     width: 80%;
     height: 80%;
@@ -137,6 +152,21 @@ h2 {
     left: 0;
     height: 4px;
     background-color: #4caf50;
+}
+
+.plot.planted[data-boosted="true"] .growth-indicator {
+    background-color: #2196f3;
+    height: 6px;
+    animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        opacity: 0.7;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .side-panel {
@@ -163,10 +193,41 @@ h2 {
     overflow-y: auto;
 }
 
-.seed-container {
+.seed-tabs {
     display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 5px;
+    font-size: 0.9rem;
+    background-color: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    border-radius: 5px;
+    margin: 0 2px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    background-color: #c8e6c9;
+}
+
+.tab-btn.active {
+    background-color: #81c784;
+    color: white;
+    font-weight: bold;
+}
+
+.seed-container {
+    display: none;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.seed-container.active {
+    display: flex;
 }
 
 .seed {
@@ -180,6 +241,7 @@ h2 {
     cursor: pointer;
     transition: all 0.2s ease;
     border: 2px solid transparent;
+    position: relative;
 }
 
 .seed:hover {
@@ -189,6 +251,27 @@ h2 {
 .seed.selected {
     border-color: #7cb342;
     background-color: #f1f8e9;
+}
+
+.special-effect {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    font-size: 0.7rem;
+    padding: 2px 5px;
+    border-radius: 10px;
+    margin-top: 5px;
+    border: 1px solid #bbdefb;
+}
+
+.rare-tag {
+    background-color: #fff8e1;
+    color: #ff8f00;
+    font-size: 0.7rem;
+    padding: 2px 5px;
+    border-radius: 10px;
+    margin-top: 5px;
+    border: 1px solid #ffe082;
+    font-weight: bold;
 }
 
 .seed .seed-emoji {

@@ -1,9 +1,11 @@
 // Game constants
 const CROPS = {
+    // Vegetables
     carrot: {
         growthTime: 5000, // milliseconds (for demo purposes, would be longer in a real game)
         cost: 10,
         profit: 25,
+        type: 'vegetable',
         stages: [
             '🌱', // seed
             '🌿', // growing
@@ -14,6 +16,7 @@ const CROPS = {
         growthTime: 8000,
         cost: 15,
         profit: 35,
+        type: 'vegetable',
         stages: [
             '🌱', // seed
             '🌿', // growing
@@ -24,10 +27,82 @@ const CROPS = {
         growthTime: 12000,
         cost: 20,
         profit: 50,
+        type: 'vegetable',
         stages: [
             '🌱', // seed
             '🌿', // growing
             '🎃'  // grown
+        ]
+    },
+    // New Vegetables
+    corn: {
+        growthTime: 7000,
+        cost: 12,
+        profit: 30,
+        type: 'vegetable',
+        stages: [
+            '🌱', // seed
+            '🌿', // growing
+            '🌽'  // grown
+        ]
+    },
+    eggplant: {
+        growthTime: 10000,
+        cost: 18,
+        profit: 45,
+        type: 'vegetable',
+        stages: [
+            '🌱', // seed
+            '🌿', // growing
+            '🍆'  // grown
+        ]
+    },
+    potato: {
+        growthTime: 6000,
+        cost: 8,
+        profit: 22,
+        type: 'vegetable',
+        stages: [
+            '🌱', // seed
+            '🌿', // growing
+            '🥔'  // grown
+        ]
+    },
+    // Flower types with special effects
+    sunflower: {
+        growthTime: 9000,
+        cost: 25,
+        profit: 40,
+        type: 'flower',
+        specialEffect: 'money',  // Increases daily money bonus
+        stages: [
+            '🌱', // seed
+            '🌿', // growing
+            '🌻'  // grown
+        ]
+    },
+    tulip: {
+        growthTime: 6000,
+        cost: 20,
+        profit: 35,
+        type: 'flower',
+        specialEffect: 'growth', // Speeds up adjacent plants
+        stages: [
+            '🌱', // seed
+            '🌿', // growing
+            '🌷'  // grown
+        ]
+    },
+    // Rare seed with high reward
+    goldenRose: {
+        growthTime: 15000,
+        cost: 50,
+        profit: 150,
+        type: 'rare',
+        stages: [
+            '✨', // magical seed
+            '🌱', // sprouting
+            '🌹'  // golden rose (using regular rose emoji)
         ]
     }
 };
@@ -52,6 +127,8 @@ let gameState = {
 const farmGrid = document.getElementById('farm-grid');
 const coinsDisplay = document.getElementById('coins');
 const seedElements = document.querySelectorAll('.seed');
+const tabButtons = document.querySelectorAll('.tab-btn');
+const seedContainers = document.querySelectorAll('.seed-container');
 const nextDayButton = document.getElementById('next-day');
 const dayCountDisplay = document.getElementById('day-count');
 const weatherIcon = document.getElementById('weather-icon');
@@ -62,16 +139,39 @@ const splashScreen = document.getElementById('splash-screen');
 const startGameButton = document.getElementById('start-game');
 const backgroundSound = document.getElementById('background-sound');
 const soundControl = document.getElementById('sound-control');
+const plantSound = document.getElementById('plant-sound');
+const harvestSound = document.getElementById('harvest-sound');
 
 // Initialize game
 function initGame() {
     createPlots();
     loadGame();
     updateUI();
-    seedElements.forEach(seed => {
+
+    // Set up seed selection
+    document.querySelectorAll('.seed').forEach(seed => {
         seed.addEventListener('click', () => selectSeed(seed.dataset.seed));
     });
+
+    // Set up tab switching
+    tabButtons.forEach(tab => {
+        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    });
+
     nextDayButton.addEventListener('click', startNextDay);
+}
+
+// Switch between seed tabs
+function switchTab(tabName) {
+    // Update tab buttons
+    tabButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+
+    // Update seed containers
+    seedContainers.forEach(container => {
+        container.classList.toggle('active', container.id === `${tabName}-tab`);
+    });
 }
 
 // Create farm plots
@@ -122,6 +222,9 @@ function plantSeed(plotIndex, plotElement) {
     const selectedCrop = gameState.selectedSeed;
     const cropData = CROPS[selectedCrop];
 
+    // Play planting sound
+    playSound(plantSound);
+
     // Deduct cost
     gameState.money -= cropData.cost;
     updateMoney();
@@ -161,8 +264,24 @@ function startGrowthTimer(plotIndex, plotElement) {
 
     const updateGrowth = () => {
         if (plot.state === 'planted') {
-            // Increase growth based on weather bonus
-            plot.growthProgress += 100 * gameState.weather.growthBonus;
+            // Base growth amount
+            let growthAmount = 100 * gameState.weather.growthBonus;
+
+            // Check for adjacent tulips (growth boosters)
+            const hasTulipBoost = hasAdjacentTulips(plotIndex);
+            if (hasTulipBoost) {
+                growthAmount *= 1.3; // 30% growth boost
+                plotElement.setAttribute('data-boosted', 'true');
+                if (!plot.boostedByTulip) {
+                    plot.boostedByTulip = true;
+                    addJournalEntry(`Your ${plot.crop} is growing faster thanks to nearby tulips!`);
+                }
+            } else {
+                plotElement.removeAttribute('data-boosted');
+            }
+
+            // Increase growth
+            plot.growthProgress += growthAmount;
 
             // Update growth indicator
             const progressPercent = Math.min(100, (plot.growthProgress / cropData.growthTime) * 100);
@@ -181,7 +300,14 @@ function startGrowthTimer(plotIndex, plotElement) {
                 growthIndicator.style.width = '100%';
                 clearInterval(plot.growthTimer);
 
-                addJournalEntry(`Your ${plot.crop} is ready for harvest!`);
+                // Special visual effect for golden rose
+                if (plot.crop === 'goldenRose') {
+                    plotElement.classList.add('rare-plant');
+                    addJournalEntry(`Your rare golden rose has bloomed! It shimmers with magical energy!`);
+                } else {
+                    addJournalEntry(`Your ${plot.crop} is ready for harvest!`);
+                }
+
                 showNotification(`${plot.crop.charAt(0).toUpperCase() + plot.crop.slice(1)} has grown!`);
                 saveGame();
                 return;
@@ -197,10 +323,41 @@ function startGrowthTimer(plotIndex, plotElement) {
     gameState.plots[plotIndex].growthTimer = plot.growthTimer;
 }
 
+// Check if a plot has adjacent tulips
+function hasAdjacentTulips(plotIndex) {
+    const gridSize = 5; // 5x5 grid
+    const adjacentIndices = [];
+
+    // Calculate row and column of current plot
+    const row = Math.floor(plotIndex / gridSize);
+    const col = plotIndex % gridSize;
+
+    // Check all adjacent plots (horizontally, vertically, and diagonally)
+    for (let r = Math.max(0, row - 1); r <= Math.min(gridSize - 1, row + 1); r++) {
+        for (let c = Math.max(0, col - 1); c <= Math.min(gridSize - 1, col + 1); c++) {
+            const adjacentIndex = r * gridSize + c;
+            if (adjacentIndex !== plotIndex) {
+                adjacentIndices.push(adjacentIndex);
+            }
+        }
+    }
+
+    // Check if any adjacent plot has a grown tulip
+    return adjacentIndices.some(index => {
+        const adjPlot = gameState.plots[index];
+        return adjPlot &&
+               (adjPlot.state === 'grown' || adjPlot.state === 'planted') &&
+               adjPlot.crop === 'tulip';
+    });
+}
+
 // Harvest a crop
 function harvestCrop(plotIndex, plotElement) {
     const plot = gameState.plots[plotIndex];
     const cropData = CROPS[plot.crop];
+
+    // Play harvest sound
+    playSound(harvestSound);
 
     // Add profit
     gameState.money += cropData.profit;
@@ -230,10 +387,18 @@ function harvestCrop(plotIndex, plotElement) {
 function selectSeed(seedType) {
     gameState.selectedSeed = seedType;
 
-    // Update UI
-    seedElements.forEach(seed => {
+    // Update UI - need to select all seeds across all tabs
+    document.querySelectorAll('.seed').forEach(seed => {
         if (seed.dataset.seed === seedType) {
             seed.classList.add('selected');
+
+            // Switch to the appropriate tab if not currently visible
+            const parentTab = seed.closest('.seed-container');
+            if (parentTab && !parentTab.classList.contains('active')) {
+                const tabId = parentTab.id;
+                const tabName = tabId.replace('-tab', '');
+                switchTab(tabName);
+            }
         } else {
             seed.classList.remove('selected');
         }
@@ -247,8 +412,18 @@ function startNextDay() {
     gameState.day++;
     changeWeather();
 
-    // Passive money bonus each day
-    const dailyBonus = 5;
+    // Calculate daily bonus
+    let dailyBonus = 5; // Base daily bonus
+
+    // Check for sunflowers (money boosters)
+    const sunflowerCount = countPlantsByType('sunflower', 'grown');
+    if (sunflowerCount > 0) {
+        const sunflowerBonus = sunflowerCount * 3; // Each sunflower adds 3 coins
+        dailyBonus += sunflowerBonus;
+        addJournalEntry(`Your sunflowers generated an extra ${sunflowerBonus} coins today!`);
+    }
+
+    // Add the daily bonus
     gameState.money += dailyBonus;
 
     // Update UI
@@ -260,6 +435,16 @@ function startNextDay() {
     showNotification(`Good morning! It's Day ${gameState.day}`);
 
     saveGame();
+}
+
+// Count plants by type and state
+function countPlantsByType(cropType, state) {
+    return gameState.plots.reduce((count, plot) => {
+        if (plot.crop === cropType && plot.state === state) {
+            return count + 1;
+        }
+        return count;
+    }, 0);
 }
 
 // Change weather randomly
@@ -431,12 +616,27 @@ function toggleSound() {
         soundControl.textContent = '🔊';
     }
     isSoundOn = !isSoundOn;
+
+    // Save sound state preference to localStorage
+    localStorage.setItem('cozyGardenSoundOn', isSoundOn ? 'true' : 'false');
 }
 
 function updateVolume() {
     backgroundSound.volume = volumeSlider.value;
     // Save volume preference to localStorage
     localStorage.setItem('cozyGardenVolume', volumeSlider.value);
+}
+
+// Play a sound effect if sound is enabled
+function playSound(soundElement) {
+    if (isSoundOn) {
+        // Reset the sound to start from beginning
+        soundElement.currentTime = 0;
+        soundElement.volume = volumeSlider.value;
+        soundElement.play().catch(error => {
+            console.log('Error playing sound effect:', error);
+        });
+    }
 }
 
 // Handle sound control click
@@ -452,12 +652,23 @@ if (localStorage.getItem('cozyGardenVolume') !== null) {
     backgroundSound.volume = savedVolume;
 }
 
+// Initialize sound state from saved preference
+if (localStorage.getItem('cozyGardenSoundOn') !== null) {
+    const savedSoundState = localStorage.getItem('cozyGardenSoundOn');
+    isSoundOn = savedSoundState === 'true';
+
+    // Update UI to match saved state
+    soundControl.textContent = isSoundOn ? '🔊' : '🔇';
+}
+
 // Start game from splash screen
 function startGame() {
-    // Play background sound
-    backgroundSound.play().catch(error => {
-        console.log('Audio autoplay was prevented, click sound control to start audio');
-    });
+    // Play background sound only if sound is enabled
+    if (isSoundOn) {
+        backgroundSound.play().catch(error => {
+            console.log('Audio autoplay was prevented, click sound control to start audio');
+        });
+    }
 
     // Hide splash screen with fade effect
     splashScreen.style.opacity = '0';

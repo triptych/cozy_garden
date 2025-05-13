@@ -7,9 +7,9 @@ This document outlines features to add to the Cozy Garden game to make it better
   - [x] Create/find gentle nature sound loop
   - [x] Implement volume control slider
   - [x] Add option to mute sounds
-- [ ] Add interaction sound effects
-  - [ ] Planting sound
-  - [ ] Harvesting sound
+- [x] Add interaction sound effects
+  - [x] Planting sound
+  - [x] Harvesting sound
   - [ ] Purchase/sell sounds
   - [ ] Weather transition sounds
 
