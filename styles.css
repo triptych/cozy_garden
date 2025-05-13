@@ -535,6 +535,20 @@ button:hover {
     line-height: 1.4;
 }
 
+.animal-message {
+    display: flex;
+    align-items: center;
+    background-color: #f0f8ff;
+    border-radius: 10px;
+    padding: 6px 10px;
+    margin: 3px 0;
+}
+
+.animal-message strong {
+    margin: 0 5px;
+    color: #5d4037;
+}
+
 .notification {
     position: fixed;
     bottom: 20px;
@@ -589,6 +603,13 @@ button:hover {
     font-size: 1.2rem;
     margin-bottom: 30px;
     color: #5d4037;
+}
+
+.splash-animal {
+    font-size: 3rem;
+    display: inline-block;
+    margin-left: 10px;
+    vertical-align: middle;
 }
 
 .splash-buttons {

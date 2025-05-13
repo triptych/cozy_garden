@@ -193,7 +193,8 @@ let gameState = {
     inventory: {}, // Stores harvested crops: {cropName: count}
     unlockedSeeds: [...INITIAL_UNLOCKED_CROPS], // Array of seed names that are unlocked
     friends: [], // Animal friends data
-    dailyGiftedFriends: [] // Track which friends received gifts today
+    dailyGiftedFriends: [], // Track which friends received gifts today
+    hiddenShopItems: [] // Track which shop items have been hidden after purchase
 };
 
 // DOM elements
@@ -310,6 +311,9 @@ function continueGame() {
     if (friendsTabBtn) {
         friendsTabBtn.addEventListener('click', () => switchMainTab('friends'));
     }
+
+    // Start animal message system
+    startAnimalMessages();
 }
 
 // Start a new game
@@ -331,6 +335,9 @@ function startNewGame() {
     if (friendsTabBtn) {
         friendsTabBtn.addEventListener('click', () => switchMainTab('friends'));
     }
+
+    // Start animal message system
+    startAnimalMessages();
 }
 
 // Prompt for confirmation before starting a new game
@@ -385,8 +392,12 @@ function resetGameState() {
         inventory: {},
         unlockedSeeds: [...INITIAL_UNLOCKED_CROPS],
         friends: initializeAnimalFriends(),
-        dailyGiftedFriends: []
+        dailyGiftedFriends: [],
+        hiddenShopItems: []
     };
+
+    // Make sure all shop items are visible again
+    updateShopUI();
 }
 
 // Initialize animal friends with their preferences for the day
@@ -732,6 +743,19 @@ function unlockSeed(seedName) {
 
     // Save game
     saveGame();
+
+    // Get the seed item in the shop to hide it
+    const seedItem = document.querySelector(`.buy-btn[data-seed="${seedName}"]`).closest('.inventory-item');
+
+    // After a few seconds, hide the purchased seed from the shop
+    setTimeout(() => {
+        if (seedItem) {
+            seedItem.style.display = 'none';
+            // Add to hidden items list
+            gameState.hiddenShopItems.push(seedName);
+            saveGame();
+        }
+    }, 3000); // Hide after 3 seconds
 }
 
 // Update inventory UI
@@ -806,6 +830,11 @@ function updateShopUI() {
 
     // Add locked seeds to buy
     for (const seedName of lockedSeeds) {
+        // Skip seeds that have been purchased and hidden (until game reset)
+        if (gameState.hiddenShopItems && gameState.hiddenShopItems.includes(seedName)) {
+            continue;
+        }
+
         const cropData = CROPS[seedName];
         const unlockPrice = cropData.cost * 5; // 5x the seed cost to unlock
 
@@ -1300,6 +1329,7 @@ function loadGame() {
         // Restore inventory and unlocked seeds (newer properties)
         gameState.inventory = loadedData.inventory || {};
         gameState.unlockedSeeds = loadedData.unlockedSeeds || [...INITIAL_UNLOCKED_CROPS];
+        gameState.hiddenShopItems = loadedData.hiddenShopItems || [];
 
         // Restore animal friends or initialize them if they don't exist
         if (loadedData.friends && loadedData.friends.length > 0) {
@@ -1435,6 +1465,88 @@ if (localStorage.getItem('cozyGardenSoundOn') !== null) {
     soundControl.textContent = isSoundOn ? '🔊' : '🔇';
 }
 
+// Animal message system
+let animalMessageTimer = null;
+
+// Generate a random animal message based on message type
+function generateAnimalMessage(animal, messageType) {
+    const messages = {
+        weather: [
+            `It's a ${gameState.weather.text.toLowerCase()} day!`,
+            `The ${gameState.weather.text.toLowerCase()} weather makes me feel ${gameState.weather.growthBonus > 1 ? 'energetic' : 'sleepy'}.`,
+            `I love ${gameState.weather.text.toLowerCase()} days like this!`,
+            `Weather like this makes me want to ${gameState.weather.growthBonus > 1 ? 'play outside' : 'stay cozy inside'}.`
+        ],
+        needs: [
+            `I wish I had a ${animal.dailyPreference}...`,
+            `I'm dreaming about eating ${animal.dailyPreference} today.`,
+            `Do you think you could grow some ${animal.dailyPreference} for me?`,
+            `Nothing would make me happier than a fresh ${animal.dailyPreference}!`
+        ],
+        friendly: [
+            `Hope you're having a great day!`,
+            `Your garden is looking lovely today!`,
+            `It's so peaceful here in your garden.`,
+            `I'm so happy to be your friend!`,
+            `Thanks for taking care of this place!`
+        ]
+    };
+
+    // Select a random message from the appropriate category
+    const selectedMessages = messages[messageType];
+    return selectedMessages[Math.floor(Math.random() * selectedMessages.length)];
+}
+
+// Add an animal message to the journal
+function addAnimalMessage() {
+    // Only proceed if we have animal friends
+    if (!gameState.friends || gameState.friends.length === 0) return;
+
+    // Pick a random animal
+    const randomAnimalIndex = Math.floor(Math.random() * gameState.friends.length);
+    const animal = gameState.friends[randomAnimalIndex];
+
+    // Pick a random message type (weather, needs, or friendly)
+    const messageTypes = ['weather', 'needs', 'friendly'];
+    const randomMessageType = messageTypes[Math.floor(Math.random() * messageTypes.length)];
+
+    // Generate the message
+    const message = generateAnimalMessage(animal, randomMessageType);
+
+    // Add formatted message to journal with animal emoji
+    const entry = document.createElement('p');
+    entry.innerHTML = `Day ${gameState.day}: <span class="animal-message">${animal.emoji} <strong>${animal.name}:</strong> ${message}</span>`;
+    journalEntries.prepend(entry);
+
+    // Keep only the last 10 entries
+    while (journalEntries.children.length > 10) {
+        journalEntries.removeChild(journalEntries.lastChild);
+    }
+
+    // Schedule the next animal message
+    scheduleNextAnimalMessage();
+}
+
+// Schedule the next animal message at a random interval
+function scheduleNextAnimalMessage() {
+    // Clear any existing timer
+    if (animalMessageTimer) {
+        clearTimeout(animalMessageTimer);
+    }
+
+    // Random interval between 15-45 seconds
+    const randomInterval = 15000 + Math.floor(Math.random() * 30000);
+
+    // Set the timer for the next message
+    animalMessageTimer = setTimeout(addAnimalMessage, randomInterval);
+}
+
+// Start animal message system
+function startAnimalMessages() {
+    // Schedule the first message
+    scheduleNextAnimalMessage();
+}
+
 
 // Initialize the game
 document.addEventListener('DOMContentLoaded', () => {
@@ -1444,7 +1556,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add random animal emoji to splash screen
     const splashContentP = document.querySelector('.splash-content p');
     const randomAnimalEmoji = ANIMAL_EMOJIS[Math.floor(Math.random() * ANIMAL_EMOJIS.length)];
-    splashContentP.innerHTML = `Relax and grow your garden ${randomAnimalEmoji}`;
+    splashContentP.innerHTML = `Relax and grow your garden <span class="splash-animal">${randomAnimalEmoji}</span>`;
 
     // Make sure splash screen is visible
     splashScreen.style.display = 'flex';
