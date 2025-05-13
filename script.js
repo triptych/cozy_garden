@@ -2,6 +2,72 @@
 const INITIAL_MONEY = 100;
 const INITIAL_UNLOCKED_CROPS = ["carrot", "potato", "tomato"]; // Start with just these basic crops
 
+// Animal Friends
+const ANIMAL_FRIENDS = [
+    {
+        name: "Bunny",
+        emoji: "🐰",
+        preferredCrops: ["carrot", "potato"],
+        giftLevel: 5, // How many gifts to fill the meter
+        difficulty: 1, // Easy
+        reward: {
+            type: "items",
+            item: "carrot",
+            amount: 3
+        }
+    },
+    {
+        name: "Squirrel",
+        emoji: "🐿️",
+        preferredCrops: ["corn", "pumpkin"],
+        giftLevel: 8,
+        difficulty: 2, // Medium
+        reward: {
+            type: "items",
+            item: "corn",
+            amount: 4
+        }
+    },
+    {
+        name: "Hedgehog",
+        emoji: "🦔",
+        preferredCrops: ["tomato", "eggplant"],
+        giftLevel: 10,
+        difficulty: 3, // Medium-Hard
+        reward: {
+            type: "items",
+            item: "tomato",
+            amount: 5
+        }
+    },
+    {
+        name: "Fox",
+        emoji: "🦊",
+        preferredCrops: ["tulip", "sunflower"],
+        giftLevel: 12,
+        difficulty: 4, // Hard
+        reward: {
+            type: "money",
+            amount: 50
+        }
+    },
+    {
+        name: "Owl",
+        emoji: "🦉",
+        preferredCrops: ["goldenRose"],
+        giftLevel: 5,
+        difficulty: 5, // Very Hard
+        reward: {
+            type: "special",
+            item: "goldenRose",
+            amount: 1
+        }
+    }
+];
+
+// Random animal emojis for splash screen
+const ANIMAL_EMOJIS = ["🐰", "🐿️", "🦔", "🦊", "🦉", "🐢", "🦝", "🐻", "🐼", "🐨", "🦁", "🐯", "🦊", "🐱", "🐶"];
+
 const CROPS = {
     // Vegetables
     carrot: {
@@ -125,7 +191,9 @@ let gameState = {
     weather: WEATHER_TYPES[0],
     plots: [],
     inventory: {}, // Stores harvested crops: {cropName: count}
-    unlockedSeeds: [...INITIAL_UNLOCKED_CROPS] // Array of seed names that are unlocked
+    unlockedSeeds: [...INITIAL_UNLOCKED_CROPS], // Array of seed names that are unlocked
+    friends: [], // Animal friends data
+    dailyGiftedFriends: [] // Track which friends received gifts today
 };
 
 // DOM elements
@@ -234,7 +302,14 @@ function continueGame() {
     updateUI();
     updateInventoryUI();
     updateShopUI();
+    updateFriendsUI();
     hideSplashScreen();
+
+    // Add handler for friends tab if not already added
+    const friendsTabBtn = document.querySelector('[data-main-tab="friends"]');
+    if (friendsTabBtn) {
+        friendsTabBtn.addEventListener('click', () => switchMainTab('friends'));
+    }
 }
 
 // Start a new game
@@ -245,9 +320,17 @@ function startNewGame() {
     updateInventoryUI();
     updateShopUI();
     updateSeedAvailability();
+    updateFriendsUI();
     hideSplashScreen();
     closeModal();
     addJournalEntry('Starting a fresh garden! The weather is perfect for planting.');
+    addJournalEntry('Some animal friends have appeared! They would like gifts from your garden.');
+
+    // Add handler for friends tab if not already added
+    const friendsTabBtn = document.querySelector('[data-main-tab="friends"]');
+    if (friendsTabBtn) {
+        friendsTabBtn.addEventListener('click', () => switchMainTab('friends'));
+    }
 }
 
 // Prompt for confirmation before starting a new game
@@ -300,8 +383,26 @@ function resetGameState() {
         weather: WEATHER_TYPES[0],
         plots: [],
         inventory: {},
-        unlockedSeeds: [...INITIAL_UNLOCKED_CROPS]
+        unlockedSeeds: [...INITIAL_UNLOCKED_CROPS],
+        friends: initializeAnimalFriends(),
+        dailyGiftedFriends: []
     };
+}
+
+// Initialize animal friends with their preferences for the day
+function initializeAnimalFriends() {
+    return ANIMAL_FRIENDS.map(friend => {
+        return {
+            ...friend,
+            friendshipLevel: 0,
+            dailyPreference: getRandomPreference(friend)
+        };
+    });
+}
+
+// Get a random preference for an animal friend from their preferred crops
+function getRandomPreference(friend) {
+    return friend.preferredCrops[Math.floor(Math.random() * friend.preferredCrops.length)];
 }
 
 // Switch between seed tabs
@@ -795,15 +896,247 @@ function startNextDay() {
     // Add the daily bonus
     gameState.money += dailyBonus;
 
+    // Reset daily gifted friends and update animal friend preferences
+    gameState.dailyGiftedFriends = [];
+    gameState.friends.forEach(friend => {
+        friend.dailyPreference = getRandomPreference(friend);
+    });
+
     // Update UI
     dayCountDisplay.textContent = `Day ${gameState.day}`;
     updateMoney();
+    updateFriendsUI();
 
     // Add journal entry
     addJournalEntry(`Day ${gameState.day} begins. Weather is ${gameState.weather.text}.`);
     showNotification(`Good morning! It's Day ${gameState.day}`);
 
     saveGame();
+}
+
+// Give a gift to an animal friend
+function giftToFriend(friendIndex, cropName) {
+    // Check if we have this crop in inventory
+    if (!gameState.inventory[cropName] || gameState.inventory[cropName] <= 0) {
+        showNotification(`You don't have any ${cropName} to give!`);
+        return;
+    }
+
+    // Check if we've already gifted this friend today
+    if (gameState.dailyGiftedFriends.includes(friendIndex)) {
+        showNotification(`You already gave a gift to this friend today!`);
+        return;
+    }
+
+    const friend = gameState.friends[friendIndex];
+
+    // Remove the crop from inventory
+    gameState.inventory[cropName]--;
+    if (gameState.inventory[cropName] <= 0) {
+        delete gameState.inventory[cropName];
+    }
+
+    // Mark as gifted today
+    gameState.dailyGiftedFriends.push(friendIndex);
+
+    // Increase friendship based on whether this was the preferred crop
+    let friendshipIncrease = 1;
+    if (cropName === friend.dailyPreference) {
+        friendshipIncrease = 2; // Double points for preferred crop
+        showNotification(`${friend.name} loved the ${cropName}!`);
+        addJournalEntry(`${friend.name} was delighted with the ${cropName} - it's their favorite!`);
+    } else if (friend.preferredCrops.includes(cropName)) {
+        friendshipIncrease = 1;
+        showNotification(`${friend.name} liked the ${cropName}.`);
+        addJournalEntry(`${friend.name} appreciated the ${cropName}.`);
+    } else {
+        friendshipIncrease = 0.5; // Half point for non-preferred crop
+        showNotification(`${friend.name} accepted the ${cropName}.`);
+        addJournalEntry(`${friend.name} took the ${cropName}, but didn't seem very excited.`);
+    }
+
+    // Update friendship level
+    friend.friendshipLevel += friendshipIncrease;
+
+    // Check if friendship level is maxed
+    if (friend.friendshipLevel >= friend.giftLevel && !friend.rewardClaimed) {
+        // Give reward
+        giveAnimalReward(friendIndex);
+        friend.rewardClaimed = true;
+    }
+
+    // Update UI
+    updateFriendsUI();
+    updateInventoryUI();
+
+    // Save game
+    saveGame();
+}
+
+// Give reward when friendship level is maxed
+function giveAnimalReward(friendIndex) {
+    const friend = gameState.friends[friendIndex];
+    const reward = friend.reward;
+
+    let rewardText = '';
+
+    if (reward.type === 'items') {
+        // Add items to inventory
+        for (let i = 0; i < reward.amount; i++) {
+            addToInventory(reward.item);
+        }
+        rewardText = `${reward.amount} ${reward.item}${reward.amount > 1 ? 's' : ''}`;
+    } else if (reward.type === 'money') {
+        // Add money
+        gameState.money += reward.amount;
+        updateMoney();
+        rewardText = `${reward.amount} coins`;
+    } else if (reward.type === 'special') {
+        // Add special item
+        for (let i = 0; i < reward.amount; i++) {
+            addToInventory(reward.item);
+        }
+        rewardText = `a rare ${reward.item}`;
+    }
+
+    showNotification(`${friend.name} gave you ${rewardText}!`);
+    addJournalEntry(`${friend.name} has become your good friend and gave you ${rewardText} as a thank you gift!`);
+
+    // Reset friendship for continued gifts
+    friend.friendshipLevel = 0;
+    friend.rewardClaimed = false;
+}
+
+// Update the animal friends UI
+function updateFriendsUI() {
+    const friendsContainer = document.getElementById('friends-container');
+    if (!friendsContainer) return;
+
+    friendsContainer.innerHTML = '';
+
+    // Sort friends by difficulty (easiest first)
+    const sortedFriends = [...gameState.friends].sort((a, b) => a.difficulty - b.difficulty);
+
+    sortedFriends.forEach((friend, index) => {
+        const realIndex = gameState.friends.findIndex(f => f.name === friend.name);
+        const friendElement = document.createElement('div');
+        friendElement.className = 'friend-item';
+
+        // Check if this friend has been gifted today
+        const isGiftedToday = gameState.dailyGiftedFriends.includes(realIndex);
+        if (isGiftedToday) {
+            friendElement.classList.add('gifted-today');
+        }
+
+        // Create friendship meter
+        const meterPercentage = (friend.friendshipLevel / friend.giftLevel) * 100;
+
+        friendElement.innerHTML = `
+            <div class="friend-info">
+                <span class="friend-emoji">${friend.emoji}</span>
+                <div class="friend-details">
+                    <span class="friend-name">${friend.name}</span>
+                    <span class="friend-wants">Wants: ${CROPS[friend.dailyPreference].stages[2]}</span>
+                </div>
+            </div>
+            <div class="friend-meter-container">
+                <div class="friend-meter" style="width: ${meterPercentage}%"></div>
+            </div>
+        `;
+
+        // Add gift button
+        const giftButton = document.createElement('button');
+        giftButton.className = 'gift-btn';
+        giftButton.textContent = 'Gift';
+        giftButton.disabled = isGiftedToday;
+
+        if (!isGiftedToday) {
+            giftButton.addEventListener('click', () => {
+                openGiftModal(realIndex);
+            });
+        }
+
+        friendElement.appendChild(giftButton);
+        friendsContainer.appendChild(friendElement);
+    });
+}
+
+// Open modal for selecting a gift
+function openGiftModal(friendIndex) {
+    // Get existing modal or create new one
+    let giftModal = document.getElementById('gift-modal');
+    if (!giftModal) {
+        giftModal = document.createElement('div');
+        giftModal.id = 'gift-modal';
+        giftModal.className = 'modal';
+
+        const modalContent = document.createElement('div');
+        modalContent.className = 'modal-content';
+
+        giftModal.appendChild(modalContent);
+        document.body.appendChild(giftModal);
+    }
+
+    const modalContent = giftModal.querySelector('.modal-content');
+    const friend = gameState.friends[friendIndex];
+
+    modalContent.innerHTML = `
+        <h2>Gift to ${friend.name}</h2>
+        <p>Select an item to give:</p>
+        <div class="gift-grid" id="gift-grid"></div>
+        <button class="cancel-btn" id="cancel-gift-btn">Cancel</button>
+    `;
+
+    // Add inventory items to the gift grid
+    const giftGrid = modalContent.querySelector('#gift-grid');
+
+    // Check if inventory is empty
+    if (Object.keys(gameState.inventory).length === 0) {
+        giftGrid.innerHTML = '<p class="empty-inventory-message">You have no items to gift.</p>';
+    } else {
+        for (const [cropName, count] of Object.entries(gameState.inventory)) {
+            const cropData = CROPS[cropName];
+            const isPreferred = friend.dailyPreference === cropName;
+
+            const item = document.createElement('div');
+            item.className = 'gift-item';
+            if (isPreferred) {
+                item.classList.add('preferred');
+            }
+
+            // Get the grown stage emoji
+            const cropEmoji = cropData.stages[cropData.stages.length - 1];
+
+            item.innerHTML = `
+                <span class="crop-emoji">${cropEmoji}</span>
+                <span class="crop-name">${cropName}</span>
+                <span class="crop-count">${count}</span>
+                ${isPreferred ? '<span class="preferred-tag">Favorite!</span>' : ''}
+            `;
+
+            item.addEventListener('click', () => {
+                giftToFriend(friendIndex, cropName);
+                closeGiftModal();
+            });
+
+            giftGrid.appendChild(item);
+        }
+    }
+
+    // Set up cancel button
+    const cancelButton = modalContent.querySelector('#cancel-gift-btn');
+    cancelButton.addEventListener('click', closeGiftModal);
+
+    // Show the modal
+    giftModal.classList.add('visible');
+}
+
+// Close the gift modal
+function closeGiftModal() {
+    const giftModal = document.getElementById('gift-modal');
+    if (giftModal) {
+        giftModal.classList.remove('visible');
+    }
 }
 
 // Count plants by type and state
@@ -968,6 +1301,15 @@ function loadGame() {
         gameState.inventory = loadedData.inventory || {};
         gameState.unlockedSeeds = loadedData.unlockedSeeds || [...INITIAL_UNLOCKED_CROPS];
 
+        // Restore animal friends or initialize them if they don't exist
+        if (loadedData.friends && loadedData.friends.length > 0) {
+            gameState.friends = loadedData.friends;
+            gameState.dailyGiftedFriends = loadedData.dailyGiftedFriends || [];
+        } else {
+            gameState.friends = initializeAnimalFriends();
+            gameState.dailyGiftedFriends = [];
+        }
+
         // Restore plots
         loadedData.plots.forEach((loadedPlot, index) => {
             gameState.plots[index].state = loadedPlot.state;
@@ -1099,9 +1441,20 @@ document.addEventListener('DOMContentLoaded', () => {
     createEmojiStyles();
     initGame();
 
+    // Add random animal emoji to splash screen
+    const splashContentP = document.querySelector('.splash-content p');
+    const randomAnimalEmoji = ANIMAL_EMOJIS[Math.floor(Math.random() * ANIMAL_EMOJIS.length)];
+    splashContentP.innerHTML = `Relax and grow your garden ${randomAnimalEmoji}`;
+
     // Make sure splash screen is visible
     splashScreen.style.display = 'flex';
     splashScreen.style.opacity = '1';
+
+    // Update Friends UI if tab exists
+    const friendsContainer = document.getElementById('friends-container');
+    if (friendsContainer) {
+        updateFriendsUI();
+    }
 
     // Debug function to log tab info
     function debugTabs() {
