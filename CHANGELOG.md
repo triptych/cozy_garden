@@ -2,6 +2,16 @@
 
 All notable changes to the Cozy Garden Game will be documented in this file.
 
+## [1.2.0] - 2025-05-13
+
+### Added
+- Enhanced animal friend interactions
+  - Animal friends now send cozy messages in the journal at random intervals
+  - Different message types based on weather, needs, and friendly greetings
+  - Messages are displayed with the animal's emoji and styled with a light blue background
+- Visual improvements
+  - Larger animal emoji in the splash screen for better visibility
+
 ## [1.1.0] - 2025-05-12
 
 ### Added
