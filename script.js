@@ -1,4 +1,7 @@
 // Game constants
+const INITIAL_MONEY = 100;
+const INITIAL_UNLOCKED_CROPS = ["carrot", "potato", "tomato"]; // Start with just these basic crops
+
 const CROPS = {
     // Vegetables
     carrot: {
@@ -116,11 +119,13 @@ const WEATHER_TYPES = [
 
 // Game state
 let gameState = {
-    money: 100,
+    money: INITIAL_MONEY,
     selectedSeed: 'carrot',
     day: 1,
     weather: WEATHER_TYPES[0],
-    plots: []
+    plots: [],
+    inventory: {}, // Stores harvested crops: {cropName: count}
+    unlockedSeeds: [...INITIAL_UNLOCKED_CROPS] // Array of seed names that are unlocked
 };
 
 // DOM elements
@@ -128,7 +133,9 @@ const farmGrid = document.getElementById('farm-grid');
 const coinsDisplay = document.getElementById('coins');
 const seedElements = document.querySelectorAll('.seed');
 const tabButtons = document.querySelectorAll('.tab-btn');
+const mainTabButtons = document.querySelectorAll('.main-tab-btn');
 const seedContainers = document.querySelectorAll('.seed-container');
+const mainTabContainers = document.querySelectorAll('.main-tab-container');
 const nextDayButton = document.getElementById('next-day');
 const dayCountDisplay = document.getElementById('day-count');
 const weatherIcon = document.getElementById('weather-icon');
@@ -136,29 +143,151 @@ const weatherText = document.getElementById('weather-text');
 const journalEntries = document.getElementById('journal-entries');
 const notification = document.getElementById('notification');
 const splashScreen = document.getElementById('splash-screen');
-const startGameButton = document.getElementById('start-game');
+const continueGameButton = document.getElementById('continue-game');
+const newGameButton = document.getElementById('new-game');
 const backgroundSound = document.getElementById('background-sound');
 const soundControl = document.getElementById('sound-control');
 const plantSound = document.getElementById('plant-sound');
 const harvestSound = document.getElementById('harvest-sound');
+const confirmModal = document.getElementById('confirm-modal');
+const confirmYesButton = document.getElementById('confirm-yes');
+const confirmNoButton = document.getElementById('confirm-no');
+const inventoryContainer = document.getElementById('player-inventory');
+const sellInventoryContainer = document.getElementById('sell-inventory');
+const buySeedsContainer = document.getElementById('buy-seeds');
 
 // Initialize game
 function initGame() {
     createPlots();
-    loadGame();
-    updateUI();
+    setupEventListeners();
+    checkSavedGame();
+}
 
+// Set up all event listeners
+function setupEventListeners() {
     // Set up seed selection
     document.querySelectorAll('.seed').forEach(seed => {
-        seed.addEventListener('click', () => selectSeed(seed.dataset.seed));
+        seed.addEventListener('click', () => {
+            const seedType = seed.dataset.seed;
+            // Only allow selection if seed is unlocked
+            if (gameState.unlockedSeeds.includes(seedType)) {
+                selectSeed(seedType);
+            } else {
+                showNotification("This seed variety is locked! Buy it in the shop.");
+            }
+        });
     });
 
-    // Set up tab switching
+    // Set up seed tab switching
     tabButtons.forEach(tab => {
         tab.addEventListener('click', () => switchTab(tab.dataset.tab));
     });
 
+    // Set up main tab switching
+    mainTabButtons.forEach(tab => {
+        tab.addEventListener('click', () => switchMainTab(tab.dataset.mainTab));
+    });
+
+    // Set up next day button
     nextDayButton.addEventListener('click', startNextDay);
+
+    // Set up splash screen buttons
+    continueGameButton.addEventListener('click', continueGame);
+    newGameButton.addEventListener('click', promptNewGame);
+
+    // Set up confirmation modal buttons
+    confirmYesButton.addEventListener('click', startNewGame);
+    confirmNoButton.addEventListener('click', closeModal);
+}
+
+// Check if a saved game exists and update UI accordingly
+function checkSavedGame() {
+    const savedData = localStorage.getItem('cozyGardenGame');
+
+    if (savedData) {
+        // Show the continue game button if we have saved data
+        continueGameButton.style.display = 'inline-block';
+    } else {
+        // Hide the continue button if no saved data
+        continueGameButton.style.display = 'none';
+        // Auto-start a new game
+        startNewGame();
+    }
+}
+
+// Continue a saved game
+function continueGame() {
+    loadGame();
+    updateUI();
+    updateInventoryUI();
+    updateShopUI();
+    hideSplashScreen();
+}
+
+// Start a new game
+function startNewGame() {
+    resetGameState();
+    createPlots();
+    updateUI();
+    updateInventoryUI();
+    updateShopUI();
+    hideSplashScreen();
+    closeModal();
+    addJournalEntry('Starting a fresh garden! The weather is perfect for planting.');
+}
+
+// Prompt for confirmation before starting a new game
+function promptNewGame() {
+    const savedData = localStorage.getItem('cozyGardenGame');
+
+    if (savedData) {
+        // Show confirmation modal
+        confirmModal.classList.add('visible');
+    } else {
+        // No saved game, start new game directly
+        startNewGame();
+    }
+}
+
+// Close the confirmation modal
+function closeModal() {
+    confirmModal.classList.remove('visible');
+}
+
+// Hide the splash screen
+function hideSplashScreen() {
+    // Play background sound only if sound is enabled
+    if (isSoundOn) {
+        backgroundSound.play().catch(error => {
+            console.log('Audio autoplay was prevented, click sound control to start audio');
+        });
+    }
+
+    // Hide splash screen with fade effect
+    splashScreen.style.opacity = '0';
+    setTimeout(() => {
+        splashScreen.style.display = 'none';
+    }, 500);
+
+    // Enable game container interactions
+    document.querySelector('.game-container').style.pointerEvents = 'auto';
+}
+
+// Reset to initial game state
+function resetGameState() {
+    // Wipe persistent data
+    localStorage.removeItem('cozyGardenGame');
+
+    // Reset to initial state
+    gameState = {
+        money: INITIAL_MONEY,
+        selectedSeed: 'carrot',
+        day: 1,
+        weather: WEATHER_TYPES[0],
+        plots: [],
+        inventory: {},
+        unlockedSeeds: [...INITIAL_UNLOCKED_CROPS]
+    };
 }
 
 // Switch between seed tabs
@@ -172,6 +301,26 @@ function switchTab(tabName) {
     seedContainers.forEach(container => {
         container.classList.toggle('active', container.id === `${tabName}-tab`);
     });
+}
+
+// Switch between main tabs (Seeds, Inventory, Shop)
+function switchMainTab(tabName) {
+    // Update main tab buttons
+    mainTabButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mainTab === tabName);
+    });
+
+    // Update main tab containers
+    mainTabContainers.forEach(container => {
+        container.classList.toggle('active', container.id === `${tabName}-main-tab`);
+    });
+
+    // Update specific tab content if needed
+    if (tabName === 'inventory') {
+        updateInventoryUI();
+    } else if (tabName === 'shop') {
+        updateShopUI();
+    }
 }
 
 // Create farm plots
@@ -359,9 +508,8 @@ function harvestCrop(plotIndex, plotElement) {
     // Play harvest sound
     playSound(harvestSound);
 
-    // Add profit
-    gameState.money += cropData.profit;
-    updateMoney();
+    // Add to inventory instead of directly selling
+    addToInventory(plot.crop);
 
     // Reset plot
     gameState.plots[plotIndex] = {
@@ -376,11 +524,200 @@ function harvestCrop(plotIndex, plotElement) {
     plotElement.innerHTML = '';
 
     // Add journal entry
-    addJournalEntry(`Harvested ${plot.crop} for ${cropData.profit} coins.`);
-    showNotification(`Harvested ${plot.crop} +${cropData.profit} coins!`);
+    addJournalEntry(`Harvested ${plot.crop} and added to inventory.`);
+    showNotification(`Harvested ${plot.crop}! Added to inventory.`);
+
+    // Update inventory UI
+    updateInventoryUI();
 
     // Save game
     saveGame();
+}
+
+// Add a crop to inventory
+function addToInventory(cropName) {
+    if (!gameState.inventory[cropName]) {
+        gameState.inventory[cropName] = 0;
+    }
+    gameState.inventory[cropName]++;
+}
+
+// Sell a crop from inventory
+function sellCrop(cropName, amount = 1) {
+    // Check if we have enough in inventory
+    if (!gameState.inventory[cropName] || gameState.inventory[cropName] < amount) {
+        showNotification("Not enough items to sell!");
+        return;
+    }
+
+    const cropData = CROPS[cropName];
+    const profit = cropData.profit * amount;
+
+    // Update inventory and money
+    gameState.inventory[cropName] -= amount;
+    if (gameState.inventory[cropName] <= 0) {
+        delete gameState.inventory[cropName]; // Remove from inventory if count reaches 0
+    }
+
+    gameState.money += profit;
+    updateMoney();
+
+    // Add journal entry
+    addJournalEntry(`Sold ${amount} ${cropName}${amount > 1 ? 's' : ''} for ${profit} coins.`);
+    showNotification(`Sold ${cropName}! +${profit} coins!`);
+
+    // Update UI
+    updateInventoryUI();
+    updateShopUI();
+
+    // Save game
+    saveGame();
+}
+
+// Buy a seed variety to unlock it
+function unlockSeed(seedName) {
+    const cropData = CROPS[seedName];
+
+    // Check if player has enough money
+    if (gameState.money < cropData.cost * 5) { // Make unlocking more expensive than buying one seed
+        showNotification("Not enough money to unlock this seed!");
+        return;
+    }
+
+    // Check if it's already unlocked
+    if (gameState.unlockedSeeds.includes(seedName)) {
+        showNotification("This seed is already unlocked!");
+        return;
+    }
+
+    // Unlock the seed
+    gameState.unlockedSeeds.push(seedName);
+    gameState.money -= cropData.cost * 5;
+    updateMoney();
+
+    // Update UI
+    updateSeedAvailability();
+
+    // Add journal entry
+    addJournalEntry(`Unlocked ${seedName} seeds! New variety available for planting.`);
+    showNotification(`Unlocked ${seedName}!`);
+
+    // Save game
+    saveGame();
+}
+
+// Update inventory UI
+function updateInventoryUI() {
+    // Clear inventory containers
+    inventoryContainer.innerHTML = '';
+    sellInventoryContainer.innerHTML = '';
+
+    const inventoryEmpty = Object.keys(gameState.inventory).length === 0;
+
+    if (inventoryEmpty) {
+        inventoryContainer.innerHTML = '<p class="empty-inventory-message">Your harvested crops will appear here.</p>';
+        sellInventoryContainer.innerHTML = '<p class="empty-inventory-message">You have no crops to sell.</p>';
+        return;
+    }
+
+    // Add items to both inventory displays
+    for (const [cropName, count] of Object.entries(gameState.inventory)) {
+        const cropData = CROPS[cropName];
+
+        // Create inventory item
+        const inventoryItem = createInventoryItem(cropName, count);
+        inventoryContainer.appendChild(inventoryItem);
+
+        // Create sell inventory item with button
+        const sellItem = createInventoryItem(cropName, count, true);
+        sellInventoryContainer.appendChild(sellItem);
+    }
+}
+
+// Create an inventory item element
+function createInventoryItem(cropName, count, forSelling = false) {
+    const cropData = CROPS[cropName];
+    const item = document.createElement('div');
+    item.className = 'inventory-item';
+
+    // Get the grown stage emoji
+    const cropEmoji = cropData.stages[cropData.stages.length - 1];
+
+    item.innerHTML = `
+        <span class="crop-emoji">${cropEmoji}</span>
+        <span class="crop-name">${cropName}</span>
+        <span class="crop-count">${count}</span>
+        ${forSelling ? `
+            <span class="sell-price">${cropData.profit}
+                <span class="tiny-icon">🪙</span>
+            </span>
+            <button class="sell-btn" data-crop="${cropName}">Sell</button>
+        ` : ''}
+    `;
+
+    if (forSelling) {
+        const sellButton = item.querySelector('.sell-btn');
+        sellButton.addEventListener('click', () => sellCrop(cropName));
+    }
+
+    return item;
+}
+
+// Update shop UI - seeds to buy
+function updateShopUI() {
+    buySeedsContainer.innerHTML = '';
+
+    // Get all seed types
+    const allSeeds = Object.keys(CROPS);
+    const lockedSeeds = allSeeds.filter(seed => !gameState.unlockedSeeds.includes(seed));
+
+    if (lockedSeeds.length === 0) {
+        buySeedsContainer.innerHTML = '<p class="empty-inventory-message">All seed varieties are unlocked!</p>';
+        return;
+    }
+
+    // Add locked seeds to buy
+    for (const seedName of lockedSeeds) {
+        const cropData = CROPS[seedName];
+        const unlockPrice = cropData.cost * 5; // 5x the seed cost to unlock
+
+        const seedItem = document.createElement('div');
+        seedItem.className = 'inventory-item';
+
+        seedItem.innerHTML = `
+            <span class="crop-emoji">${cropData.stages[cropData.stages.length - 1]}</span>
+            <span class="crop-name">${seedName}</span>
+            <span class="sell-price">${unlockPrice}
+                <span class="tiny-icon">🪙</span>
+            </span>
+            <button class="buy-btn" data-seed="${seedName}">Unlock</button>
+        `;
+
+        const buyButton = seedItem.querySelector('.buy-btn');
+        buyButton.addEventListener('click', () => unlockSeed(seedName));
+
+        // Disable button if player doesn't have enough money
+        if (gameState.money < unlockPrice) {
+            buyButton.disabled = true;
+            buyButton.textContent = 'Not enough';
+            buyButton.style.backgroundColor = '#9e9e9e';
+        }
+
+        buySeedsContainer.appendChild(seedItem);
+    }
+}
+
+// Update seed availability based on unlocked seeds
+function updateSeedAvailability() {
+    document.querySelectorAll('.seed').forEach(seed => {
+        const seedType = seed.dataset.seed;
+
+        if (gameState.unlockedSeeds.includes(seedType)) {
+            seed.classList.remove('disabled');
+        } else {
+            seed.classList.add('disabled');
+        }
+    });
 }
 
 // Select a seed type
@@ -539,6 +876,10 @@ function loadGame() {
         gameState.day = loadedData.day;
         gameState.weather = loadedData.weather;
 
+        // Restore inventory and unlocked seeds (newer properties)
+        gameState.inventory = loadedData.inventory || {};
+        gameState.unlockedSeeds = loadedData.unlockedSeeds || [...INITIAL_UNLOCKED_CROPS];
+
         // Restore plots
         loadedData.plots.forEach((loadedPlot, index) => {
             gameState.plots[index].state = loadedPlot.state;
@@ -580,6 +921,9 @@ function loadGame() {
         // First time playing
         addJournalEntry('Welcome to your cozy garden! Click on a plot to plant seeds.');
     }
+
+    // Update seed availability based on unlocked seeds
+    updateSeedAvailability();
 }
 
 // Create styles for emoji display
@@ -661,36 +1005,12 @@ if (localStorage.getItem('cozyGardenSoundOn') !== null) {
     soundControl.textContent = isSoundOn ? '🔊' : '🔇';
 }
 
-// Start game from splash screen
-function startGame() {
-    // Play background sound only if sound is enabled
-    if (isSoundOn) {
-        backgroundSound.play().catch(error => {
-            console.log('Audio autoplay was prevented, click sound control to start audio');
-        });
-    }
-
-    // Hide splash screen with fade effect
-    splashScreen.style.opacity = '0';
-    setTimeout(() => {
-        splashScreen.style.display = 'none';
-    }, 500);
-
-    // Add journal entry
-    addJournalEntry('Welcome to your garden! The weather is perfect for planting.');
-}
 
 // Initialize the game
 document.addEventListener('DOMContentLoaded', () => {
     createEmojiStyles();
     initGame();
 
-    // Set up splash screen button
-    startGameButton.addEventListener('click', startGame);
-
     // Prevent game container interactions until splash screen is dismissed
     document.querySelector('.game-container').style.pointerEvents = 'none';
-    startGameButton.addEventListener('click', () => {
-        document.querySelector('.game-container').style.pointerEvents = 'auto';
-    });
 });

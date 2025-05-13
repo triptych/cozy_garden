@@ -12,7 +12,22 @@
             <div class="splash-content">
                 <h1>Cozy Garden</h1>
                 <p>Relax and grow your garden</p>
-                <button id="start-game">Start Game</button>
+                <div class="splash-buttons">
+                    <button id="continue-game">Resume Game</button>
+                    <button id="new-game">New Game</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div id="confirm-modal" class="modal">
+            <div class="modal-content">
+                <h2>Are you sure?</h2>
+                <p>Starting a new game will reset all progress. This cannot be undone.</p>
+                <div class="modal-buttons">
+                    <button id="confirm-yes">Yes, start new game</button>
+                    <button id="confirm-no">No, go back</button>
+                </div>
             </div>
         </div>
 
@@ -44,7 +59,13 @@
                 <div class="farm-grid" id="farm-grid"></div>
 
                 <div class="side-panel">
-                    <div class="inventory">
+                    <div class="main-tabs">
+                        <button class="main-tab-btn active" data-main-tab="seeds">Seeds</button>
+                        <button class="main-tab-btn" data-main-tab="inventory">Inventory</button>
+                        <button class="main-tab-btn" data-main-tab="shop">Shop</button>
+                    </div>
+
+                    <div class="main-tab-container active" id="seeds-main-tab">
                         <h2>Seeds</h2>
                         <div class="seed-tabs">
                             <button class="tab-btn active" data-tab="vegetables">Vegetables</button>
@@ -112,6 +133,31 @@
                                 <span class="price">50
                                     <span class="tiny-icon">🪙</span></span>
                                 <span class="rare-tag">Rare</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="main-tab-container" id="inventory-main-tab">
+                        <h2>Inventory</h2>
+                        <div id="player-inventory" class="inventory-grid">
+                            <!-- Inventory items will be added here dynamically -->
+                            <p class="empty-inventory-message">Your harvested crops will appear here.</p>
+                        </div>
+                    </div>
+
+                    <div class="main-tab-container" id="shop-main-tab">
+                        <h2>Shop</h2>
+                        <div class="shop-section">
+                            <h3>Sell Crops</h3>
+                            <div id="sell-inventory" class="sell-grid">
+                                <!-- Sell items will be added here dynamically -->
+                                <p class="empty-inventory-message">You have no crops to sell.</p>
+                            </div>
+                        </div>
+                        <div class="shop-section">
+                            <h3>Buy Seeds</h3>
+                            <div id="buy-seeds" class="buy-grid">
+                                <!-- Seeds to buy will be added here -->
                             </div>
                         </div>
                     </div>
