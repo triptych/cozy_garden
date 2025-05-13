@@ -80,6 +80,33 @@ h2 {
     margin-bottom: 20px;
 }
 
+.farm-grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.selected-seed-display {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    border-radius: 15px;
+    padding: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    justify-content: center;
+    gap: 8px;
+}
+
+.selected-seed-emoji {
+    font-size: 1.8rem;
+}
+
+.selected-seed-name {
+    font-weight: bold;
+    color: #5d4037;
+    font-size: 1.1rem;
+}
+
 .farm-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);

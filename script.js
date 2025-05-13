@@ -155,6 +155,8 @@ const confirmNoButton = document.getElementById('confirm-no');
 const inventoryContainer = document.getElementById('player-inventory');
 const sellInventoryContainer = document.getElementById('sell-inventory');
 const buySeedsContainer = document.getElementById('buy-seeds');
+const selectedSeedEmoji = document.querySelector('.selected-seed-emoji');
+const selectedSeedName = document.querySelector('.selected-seed-name');
 
 // Initialize game
 function initGame() {
@@ -766,6 +768,11 @@ function selectSeed(seedType) {
         }
     });
 
+    // Update the selected seed display
+    const cropData = CROPS[seedType];
+    selectedSeedEmoji.textContent = cropData.stages[cropData.stages.length - 1]; // Use the grown stage emoji
+    selectedSeedName.textContent = seedType.charAt(0).toUpperCase() + seedType.slice(1); // Capitalize first letter
+
     showNotification(`Selected ${seedType} seeds`);
 }
 
@@ -924,6 +931,11 @@ function updateUI() {
     seedElements.forEach(seed => {
         seed.classList.toggle('selected', seed.dataset.seed === gameState.selectedSeed);
     });
+
+    // Update the selected seed display
+    const cropData = CROPS[gameState.selectedSeed];
+    selectedSeedEmoji.textContent = cropData.stages[cropData.stages.length - 1];
+    selectedSeedName.textContent = gameState.selectedSeed.charAt(0).toUpperCase() + gameState.selectedSeed.slice(1);
 }
 
 // Save game state to localStorage
