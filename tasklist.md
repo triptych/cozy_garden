@@ -14,14 +14,14 @@ This document outlines features to add to the Cozy Garden game to make it better
   - [ ] Weather transition sounds
 
 ## Additional Seed Varieties
-- [ ] Implement new seed types
-  - [ ] Add 3 new vegetable types with unique growth rates
-  - [ ] Add 2 new flower types with special effects
-  - [ ] Add rare/special seeds with high rewards
-- [ ] Create visual distinctions for each plant type
-  - [ ] Design growth stages for each plant
-  - [ ] Implement CSS for new plant visuals
-- [ ] Balance seed prices and harvest profits
+- [x] Implement new seed types
+  - [x] Add 3 new vegetable types with unique growth rates (corn, eggplant, potato)
+  - [x] Add 2 new flower types with special effects (sunflower, tulip)
+  - [x] Add rare/special seeds with high rewards (golden rose)
+- [x] Create visual distinctions for each plant type
+  - [x] Design growth stages for each plant
+  - [x] Implement CSS for new plant visuals
+- [x] Balance seed prices and harvest profits
 
 ## Seasonal System
 - [ ] Implement basic seasonal cycle
@@ -96,7 +96,8 @@ This document outlines features to add to the Cozy Garden game to make it better
   - [ ] Add save/load confirmation
 - [ ] Improve responsive design
   - [ ] Optimize for mobile play
-  - [ ] Create adaptive UI layout
+  - [x] Create adaptive UI layout
+      - [x] Fix garden grid to maintain size when right panel grows
   - [ ] Add touch controls
 
 ## Weather System Expansion
