@@ -857,9 +857,60 @@ function showNotification(message) {
     }, 2000);
 }
 
+// Track previous money amount to detect increases
+let previousMoney = INITIAL_MONEY;
+
 // Update money display
 function updateMoney() {
+    // Check if money has increased
+    if (gameState.money > previousMoney) {
+        // Create sparkle effect
+        createMoneySparkles();
+    }
+
+    // Update display
     coinsDisplay.textContent = gameState.money;
+
+    // Update previous money value
+    previousMoney = gameState.money;
+}
+
+// Create sparkle effects around the money counter
+function createMoneySparkles() {
+    const coinsElement = document.querySelector('.coins');
+    const sparkleSymbols = ['✨', '⭐', '💫', '🌟'];
+
+    // Create 4-6 sparkles
+    const sparkleCount = 4 + Math.floor(Math.random() * 3);
+
+    for (let i = 0; i < sparkleCount; i++) {
+        // Create sparkle element
+        const sparkle = document.createElement('div');
+        sparkle.className = 'money-sparkle';
+
+        // Random sparkle symbol
+        sparkle.textContent = sparkleSymbols[Math.floor(Math.random() * sparkleSymbols.length)];
+
+        // Random position around the money counter
+        const angle = Math.random() * Math.PI * 2; // Random angle
+        const distance = 30 + Math.random() * 20; // Random distance from center
+        const offsetX = Math.cos(angle) * distance;
+        const offsetY = Math.sin(angle) * distance;
+
+        // Position sparkle
+        sparkle.style.left = `calc(50% + ${offsetX}px)`;
+        sparkle.style.top = `calc(50% + ${offsetY}px)`;
+
+        // Add to DOM
+        coinsElement.appendChild(sparkle);
+
+        // Remove sparkle after animation completes
+        setTimeout(() => {
+            if (sparkle.parentNode) {
+                sparkle.parentNode.removeChild(sparkle);
+            }
+        }, 600); // Match animation duration
+    }
 }
 
 // Update all UI elements
