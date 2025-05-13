@@ -44,6 +44,7 @@ Andrew Wooldridge
 - `styles.css` - Styling and animations
 - `script.js` - Game logic and mechanics
 - `background.md` - Detailed implementation notes
+- `CHANGELOG.md` - Record of all notable changes to the game
 
 ## Cozy Game Mechanics Demonstrated
 
@@ -60,9 +61,11 @@ For more detailed information about the implementation, see `background.md`.
 
 ## Potential Enhancements
 
-- Sound design with ambient nature sounds
-- More crop varieties with unique properties
+- ~~Sound design with ambient nature sounds~~ (Added in v1.1.0)
+- ~~More crop varieties with unique properties~~ (Added in v1.1.0)
 - Seasonal changes that affect gameplay
 - Decorative elements to personalize your garden
 - Collections to complete (seed catalog, achievement journal)
 - Animated characters like friendly animals or garden spirits
+- Purchase/sell sounds
+- Weather transition sounds
