@@ -339,6 +339,12 @@ function switchMainTab(tabName) {
 
 // Create farm plots
 function createPlots() {
+    // Clear existing plots from the DOM
+    farmGrid.innerHTML = '';
+
+    // Reset plots array
+    gameState.plots = [];
+
     const gridSize = 5; // 5x5 grid
     for (let i = 0; i < gridSize * gridSize; i++) {
         const plot = document.createElement('div');
@@ -356,6 +362,8 @@ function createPlots() {
         plot.addEventListener('click', () => handlePlotClick(i));
         farmGrid.appendChild(plot);
     }
+
+    console.log(`Created ${gameState.plots.length} plots`);
 }
 
 // Handle plot click
